@@ -245,3 +245,251 @@ run "tags_merge" {
     error_message = "Resource-level tags must appear in merged tags"
   }
 }
+
+# ── storage block (single object format) ─────────────────────────────────────
+run "with_storage_single_object" {
+  command = plan
+
+  variables {
+    cognitive_account = {
+      resource_group = "Project"
+      kind           = "AIServices"
+      sku_name       = "S0"
+      storage = {
+        storage_account_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/mystorage"
+        identity_client_id = "00000000-0000-0000-0000-000000000000"
+      }
+    }
+  }
+
+  assert {
+    condition     = length(azurerm_cognitive_account.cognitive_account.storage) == 1
+    error_message = "storage block must be rendered from a single object"
+  }
+
+  assert {
+    condition     = tolist(azurerm_cognitive_account.cognitive_account.storage)[0].identity_client_id == "00000000-0000-0000-0000-000000000000"
+    error_message = "storage.identity_client_id must be set from the single object format"
+  }
+}
+
+# ── storage block (list format) ───────────────────────────────────────────────
+run "with_storage_list" {
+  command = plan
+
+  variables {
+    cognitive_account = {
+      resource_group = "Project"
+      kind           = "AIServices"
+      sku_name       = "S0"
+      storage = [
+        {
+          storage_account_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/mystorage"
+        }
+      ]
+    }
+  }
+
+  assert {
+    condition     = length(azurerm_cognitive_account.cognitive_account.storage) == 1
+    error_message = "storage block must be rendered from a list"
+  }
+}
+
+# ── Without storage — no storage block emitted ────────────────────────────────
+run "no_storage" {
+  command = plan
+
+  variables {
+    cognitive_account = {
+      resource_group = "Project"
+      kind           = "OpenAI"
+      sku_name       = "S0"
+    }
+  }
+
+  assert {
+    condition     = length(azurerm_cognitive_account.cognitive_account.storage) == 0
+    error_message = "storage block must not be rendered when storage is not set"
+  }
+}
+
+# ── network_injection block (AIServices only) ─────────────────────────────────
+run "with_network_injection" {
+  command = plan
+
+  variables {
+    cognitive_account = {
+      resource_group        = "Project"
+      kind                  = "AIServices"
+      sku_name              = "S0"
+      custom_subdomain_name = "myaiservice"
+      network_injection = {
+        scenario  = "agent"
+        subnet_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/agent-subnet"
+      }
+    }
+  }
+
+  assert {
+    condition     = length(azurerm_cognitive_account.cognitive_account.network_injection) > 0
+    error_message = "network_injection block must be rendered when network_injection is set"
+  }
+}
+
+# ── Without network_injection — no network_injection block emitted ───────────
+run "no_network_injection" {
+  command = plan
+
+  variables {
+    cognitive_account = {
+      resource_group = "Project"
+      kind           = "OpenAI"
+      sku_name       = "S0"
+    }
+  }
+
+  assert {
+    condition     = length(azurerm_cognitive_account.cognitive_account.network_injection) == 0
+    error_message = "network_injection block must not be rendered when network_injection is not set"
+  }
+}
+
+# ── network_acls.virtual_network_rules — subnet looked up by name ────────────
+run "with_virtual_network_rules_by_name" {
+  command = plan
+
+  variables {
+    subnets = {
+      OZ = { id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/OZ" }
+    }
+    cognitive_account = {
+      resource_group        = "Project"
+      kind                  = "OpenAI"
+      sku_name              = "S0"
+      custom_subdomain_name = "myopenai"
+      network_acls = {
+        default_action = "Deny"
+        virtual_network_rules = {
+          subnet_id = "OZ"
+        }
+      }
+    }
+  }
+
+  assert {
+    condition     = tolist(tolist(azurerm_cognitive_account.cognitive_account.network_acls)[0].virtual_network_rules)[0].subnet_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/OZ"
+    error_message = "virtual_network_rules.subnet_id must resolve a subnet name via var.subnets"
+  }
+}
+
+# ── network_acls.virtual_network_rules — subnet passed as ARM ID ─────────────
+run "with_virtual_network_rules_by_id" {
+  command = plan
+
+  variables {
+    cognitive_account = {
+      resource_group        = "Project"
+      kind                  = "OpenAI"
+      sku_name              = "S0"
+      custom_subdomain_name = "myopenai"
+      network_acls = {
+        default_action = "Deny"
+        virtual_network_rules = {
+          subnet_id                            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/OZ"
+          ignore_missing_vnet_service_endpoint = true
+        }
+      }
+    }
+  }
+
+  assert {
+    condition     = tolist(tolist(azurerm_cognitive_account.cognitive_account.network_acls)[0].virtual_network_rules)[0].subnet_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/OZ"
+    error_message = "virtual_network_rules.subnet_id must pass through a full ARM ID unchanged"
+  }
+
+  assert {
+    condition     = tolist(tolist(azurerm_cognitive_account.cognitive_account.network_acls)[0].virtual_network_rules)[0].ignore_missing_vnet_service_endpoint == true
+    error_message = "virtual_network_rules.ignore_missing_vnet_service_endpoint must be set"
+  }
+}
+
+# ── Remaining scalar optional arguments ───────────────────────────────────────
+run "with_optional_scalars" {
+  command = plan
+
+  variables {
+    cognitive_account = {
+      resource_group                               = "Project"
+      kind                                         = "TextAnalytics"
+      sku_name                                     = "S0"
+      dynamic_throttling_enabled                   = true
+      fqdns                                        = ["example.com"]
+      qna_runtime_endpoint                         = "https://example.qnamaker.ai"
+      custom_question_answering_search_service_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Search/searchServices/mysearchservice"
+      custom_question_answering_search_service_key = "search-service-key"
+    }
+  }
+
+  assert {
+    condition     = azurerm_cognitive_account.cognitive_account.dynamic_throttling_enabled == true
+    error_message = "dynamic_throttling_enabled must be set"
+  }
+
+  assert {
+    condition     = azurerm_cognitive_account.cognitive_account.fqdns[0] == "example.com"
+    error_message = "fqdns must be set"
+  }
+
+  assert {
+    condition     = azurerm_cognitive_account.cognitive_account.qna_runtime_endpoint == "https://example.qnamaker.ai"
+    error_message = "qna_runtime_endpoint must be set"
+  }
+
+  assert {
+    condition     = azurerm_cognitive_account.cognitive_account.custom_question_answering_search_service_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Search/searchServices/mysearchservice"
+    error_message = "custom_question_answering_search_service_id must be set"
+  }
+
+  assert {
+    condition     = azurerm_cognitive_account.cognitive_account.custom_question_answering_search_service_key == "search-service-key"
+    error_message = "custom_question_answering_search_service_key must be set"
+  }
+}
+
+# ── metrics_advisor_* arguments (kind = MetricsAdvisor) ───────────────────────
+run "with_metrics_advisor" {
+  command = plan
+
+  variables {
+    cognitive_account = {
+      resource_group                  = "Project"
+      kind                            = "MetricsAdvisor"
+      sku_name                        = "S0"
+      metrics_advisor_aad_client_id   = "00000000-0000-0000-0000-000000000000"
+      metrics_advisor_aad_tenant_id   = "11111111-1111-1111-1111-111111111111"
+      metrics_advisor_super_user_name = "admin"
+      metrics_advisor_website_name    = "myadvisor"
+    }
+  }
+
+  assert {
+    condition     = azurerm_cognitive_account.cognitive_account.metrics_advisor_aad_client_id == "00000000-0000-0000-0000-000000000000"
+    error_message = "metrics_advisor_aad_client_id must be set"
+  }
+
+  assert {
+    condition     = azurerm_cognitive_account.cognitive_account.metrics_advisor_aad_tenant_id == "11111111-1111-1111-1111-111111111111"
+    error_message = "metrics_advisor_aad_tenant_id must be set"
+  }
+
+  assert {
+    condition     = azurerm_cognitive_account.cognitive_account.metrics_advisor_super_user_name == "admin"
+    error_message = "metrics_advisor_super_user_name must be set"
+  }
+
+  assert {
+    condition     = azurerm_cognitive_account.cognitive_account.metrics_advisor_website_name == "myadvisor"
+    error_message = "metrics_advisor_website_name must be set"
+  }
+}

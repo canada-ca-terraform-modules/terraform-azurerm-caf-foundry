@@ -9,7 +9,7 @@ variable "cognitive_accounts" {
 }
 
 module "cognitive_accounts" {
-  source   = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-cognitive_account.git?ref=v1.0.0"
+  source   = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-foundry.git?ref=v1.1.0"
   for_each = var.cognitive_accounts
 
   location          = var.location
