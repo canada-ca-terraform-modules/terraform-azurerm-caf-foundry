@@ -493,3 +493,35 @@ run "with_metrics_advisor" {
     error_message = "metrics_advisor_website_name must be set"
   }
 }
+
+# ── Negative path: missing required kind ──────────────────────────────────────
+run "missing_kind_fails_validation" {
+  command = plan
+
+  variables {
+    cognitive_account = {
+      resource_group = "Project"
+      sku_name       = "S0"
+    }
+  }
+
+  expect_failures = [
+    var.cognitive_account,
+  ]
+}
+
+# ── Negative path: missing required resource_group ────────────────────────────
+run "missing_resource_group_fails_validation" {
+  command = plan
+
+  variables {
+    cognitive_account = {
+      kind     = "OpenAI"
+      sku_name = "S0"
+    }
+  }
+
+  expect_failures = [
+    var.cognitive_account,
+  ]
+}

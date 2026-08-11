@@ -4,7 +4,24 @@ All notable changes to this module are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- Addressed PR #1 review feedback (Copilot multi-axis review):
+  - Removed the no-op `lifecycle { ignore_changes = [] }` block from `module.tf` (an empty list is a no-op and gave a false impression of drift protection).
+  - Added two `validation` blocks to `variable "cognitive_account"` in `variables.tf` requiring `kind` and `resource_group` to be set, so a typo'd or omitted required field fails plan with a clear message instead of silently producing a misconfigured resource. Added matching negative-path tests (`missing_kind_fails_validation`, `missing_resource_group_fails_validation`) to `tests/cognitive_account.tftest.hcl`.
+  - Added a comment in `locals.tf` documenting that `storage = {}` (an empty map) normalizes to a broken `storage` block missing `storage_account_id` - callers must pass `null` or omit the key to suppress it.
+  - Added a comment in `module.tf` clarifying that `custom_question_answering_search_service_key` is already marked `sensitive` in the azurerm provider's own resource schema (verified via `terraform providers schema -json`), so Terraform already redacts it from plan/apply output without further action.
+  - Added a comment in `providers.tf` citing the azurerm v5.0 upgrade guide URL that the "no breaking changes for this resource" claim is based on.
+  - Added `permissions: contents: read` to `.github/workflows/terraform-ci.yml` and `permissions: contents: write` to `.github/workflows/documentation.yml` (least privilege; the latter's missing `contents: write` could silently fail the `terraform-docs/gh-actions` push on repos with restricted default workflow permissions).
+  - Narrowed `.github/workflows/release.yml`'s version-extraction grep to only match `ESLZ/cognitive_account.tf`'s `source =` line, so a commented-out prior `ref=` reference can no longer be picked up instead of the live one.
+  - Fixed the stale `# terraform-azurerm-caf-cognitive_account` H1 in `README.md` to the actual repo name, `terraform-azurerm-caf-foundry`.
+  - Added a comment in `ESLZ/cognitive_account.tf` (and the matching README.md example) noting that `local.resource_groups_all`/`local.subnets` are expected to be defined by the caller's own ESLZ root module.
+  - Added a comment in `tests/upgrade_compat.tftest.hcl` clarifying that `upgrade_plan_no_replacement` implies, but does not itself prove, that no attribute forced replacement (`terraform test` has no first-class "assert no replacement" primitive).
+
 ## [1.1.0] - 2026-08-11
+
 
 ### Changed
 

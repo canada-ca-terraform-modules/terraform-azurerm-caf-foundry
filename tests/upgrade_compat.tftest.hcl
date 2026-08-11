@@ -33,6 +33,12 @@ run "baseline_apply" {
 }
 
 # Step 2: plan against state from baseline — adding optional args must not replace
+# NOTE: this only asserts the resource address/name stay stable across the plan -
+# terraform test has no first-class "assert no replacement" primitive, so this
+# implies (but does not itself prove) that no attribute forced replacement. A
+# real `-/+` replacement here would still surface as a plan error against the
+# applied state below, since the name assertion would then read a
+# to-be-destroyed instance's stale value.
 run "upgrade_plan_no_replacement" {
   command = plan
 

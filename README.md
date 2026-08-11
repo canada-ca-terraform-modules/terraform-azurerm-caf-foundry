@@ -1,4 +1,4 @@
-# terraform-azurerm-caf-cognitive_account
+# terraform-azurerm-caf-foundry
 
 Deploys an Azure Cognitive Services Account following the SSC CAF naming and tagging standard. Supports all service kinds (OpenAI, AIServices, Face, ComputerVision, Speech, TextAnalytics, etc.) with configurable network ACLs, managed identity, customer-managed keys, and associated storage.
 
@@ -17,8 +17,8 @@ module "cognitive_accounts" {
   project           = var.project
   userDefinedString = each.key
   cognitive_account = each.value
-  resource_groups   = local.resource_groups_all
-  subnets           = local.subnets
+  resource_groups   = local.resource_groups_all # expected to be defined by your ESLZ root module
+  subnets           = local.subnets             # expected to be defined by your ESLZ root module
   tags              = var.tags
 }
 ```
