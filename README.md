@@ -1,4 +1,4 @@
-# terraform-azurerm-caf-cognitive_account
+# terraform-azurerm-caf-foundry
 
 Deploys an Azure Cognitive Services Account following the SSC CAF naming and tagging standard. Supports all service kinds (OpenAI, AIServices, Face, ComputerVision, Speech, TextAnalytics, etc.) with configurable network ACLs, managed identity, customer-managed keys, and associated storage.
 
@@ -8,7 +8,7 @@ Deploys an Azure Cognitive Services Account following the SSC CAF naming and tag
 
 ```hcl
 module "cognitive_accounts" {
-  source   = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-cognitive_account.git?ref=v1.0.0"
+  source   = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-foundry.git?ref=v1.1.0"
   for_each = var.cognitive_accounts
 
   location          = var.location
@@ -17,8 +17,8 @@ module "cognitive_accounts" {
   project           = var.project
   userDefinedString = each.key
   cognitive_account = each.value
-  resource_groups   = local.resource_groups_all
-  subnets           = local.subnets
+  resource_groups   = local.resource_groups_all # expected to be defined by your ESLZ root module
+  subnets           = local.subnets             # expected to be defined by your ESLZ root module
   tags              = var.tags
 }
 ```
@@ -160,4 +160,51 @@ Expected: all test runs pass with `0 failed`.
 GitHub Actions at `.github/workflows/terraform-ci.yml` runs fmt, init, validate, tflint, and test on every PR.
 
 <!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 5.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | ~> 5.0 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [azurerm_cognitive_account.cognitive_account](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_account) | resource |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_cognitive_account"></a> [cognitive\_account](#input\_cognitive\_account) | Object containing all Cognitive Services Account parameters | `any` | `{}` | no |
+| <a name="input_env"></a> [env](#input\_env) | (Required) 4 character string defining the environment name prefix for the Cognitive Services Account | `string` | n/a | yes |
+| <a name="input_group"></a> [group](#input\_group) | (Required) Character string defining the group for the target subscription | `string` | n/a | yes |
+| <a name="input_location"></a> [location](#input\_location) | Azure location for the Cognitive Services Account | `string` | `"canadacentral"` | no |
+| <a name="input_project"></a> [project](#input\_project) | (Required) Character string defining the project for the target subscription | `string` | n/a | yes |
+| <a name="input_resource_groups"></a> [resource\_groups](#input\_resource\_groups) | (Required) Resource group object for the Cognitive Services Account | `any` | `{}` | no |
+| <a name="input_subnets"></a> [subnets](#input\_subnets) | Map of subnet objects for virtual network rules | `any` | `{}` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Tags that will be applied to every associated Cognitive Services Account resource | `map(string)` | `{}` | no |
+| <a name="input_userDefinedString"></a> [userDefinedString](#input\_userDefinedString) | (Required) User defined portion value for the name of the Cognitive Services Account | `string` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_cognitive_account_endpoint"></a> [cognitive\_account\_endpoint](#output\_cognitive\_account\_endpoint) | Outputs the endpoint of the Cognitive Services Account |
+| <a name="output_cognitive_account_id"></a> [cognitive\_account\_id](#output\_cognitive\_account\_id) | Outputs the ID of the Cognitive Services Account |
+| <a name="output_cognitive_account_name"></a> [cognitive\_account\_name](#output\_cognitive\_account\_name) | Outputs the name of the Cognitive Services Account |
+| <a name="output_cognitive_account_object"></a> [cognitive\_account\_object](#output\_cognitive\_account\_object) | Outputs the entire Cognitive Services Account object |
+| <a name="output_cognitive_account_primary_access_key"></a> [cognitive\_account\_primary\_access\_key](#output\_cognitive\_account\_primary\_access\_key) | Outputs the primary access key of the Cognitive Services Account |
+| <a name="output_cognitive_account_secondary_access_key"></a> [cognitive\_account\_secondary\_access\_key](#output\_cognitive\_account\_secondary\_access\_key) | Outputs the secondary access key of the Cognitive Services Account |
 <!-- END_TF_DOCS -->

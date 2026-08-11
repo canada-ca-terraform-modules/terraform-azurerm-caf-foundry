@@ -9,7 +9,7 @@ variable "cognitive_accounts" {
 }
 
 module "cognitive_accounts" {
-  source   = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-cognitive_account.git?ref=v1.0.0"
+  source   = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-foundry.git?ref=v1.1.0"
   for_each = var.cognitive_accounts
 
   location          = var.location
@@ -18,7 +18,11 @@ module "cognitive_accounts" {
   project           = var.project
   userDefinedString = each.key
   cognitive_account = each.value
-  resource_groups   = local.resource_groups_all
-  subnets           = local.subnets
-  tags              = var.tags
+  # resource_groups_all / subnets: expected to already be defined by the ESLZ
+  # root module (e.g. L1_blueprint_base/L2_blueprint_project) - not declared
+  # in this file. Adjust these two references to match your own root's local
+  # names if they differ.
+  resource_groups = local.resource_groups_all
+  subnets         = local.subnets
+  tags            = var.tags
 }

@@ -36,6 +36,16 @@ variable "cognitive_account" {
   description = "Object containing all Cognitive Services Account parameters"
   type        = any
   default     = {}
+
+  validation {
+    condition     = try(var.cognitive_account.kind, null) != null
+    error_message = "cognitive_account.kind is required (e.g. \"OpenAI\", \"AIServices\", \"Face\", etc.) - catches typos in this field early instead of silently producing a resource with an unset kind."
+  }
+
+  validation {
+    condition     = try(var.cognitive_account.resource_group, null) != null
+    error_message = "cognitive_account.resource_group is required - a key from the resource_groups map, or a full ARM resource ID."
+  }
 }
 
 variable "resource_groups" {

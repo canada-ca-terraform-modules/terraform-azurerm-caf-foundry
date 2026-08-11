@@ -2,7 +2,11 @@ locals {
   # If resource_group was an ARM ID, parse the name from the ID; otherwise look up in the resource_groups map
   resource_group_name = strcontains(var.cognitive_account.resource_group, "/resourceGroups/") ? regex("[^/]+$", var.cognitive_account.resource_group) : var.resource_groups[var.cognitive_account.resource_group].name
 
-  # Normalize storage blocks: accept a single object or a list
+  # Normalize storage blocks: accept a single object or a list.
+  # NOTE: pass null or omit the `storage` key entirely to suppress the storage
+  # block - passing storage = {} (an empty map) instead of null normalizes to
+  # [{}], which emits a storage block missing the required storage_account_id
+  # and fails at plan time.
   _storage_raw = try(var.cognitive_account.storage, [])
   storage      = try(tolist(local._storage_raw), [local._storage_raw])
 

@@ -6,19 +6,23 @@ resource "azurerm_cognitive_account" "cognitive_account" {
   sku_name            = try(var.cognitive_account.sku_name, "S0")
 
   # Optional top-level arguments
-  custom_subdomain_name                        = try(var.cognitive_account.custom_subdomain_name, null)
-  dynamic_throttling_enabled                   = try(var.cognitive_account.dynamic_throttling_enabled, null)
-  fqdns                                        = try(var.cognitive_account.fqdns, null)
-  local_auth_enabled                           = try(var.cognitive_account.local_auth_enabled, true)
-  metrics_advisor_aad_client_id                = try(var.cognitive_account.metrics_advisor_aad_client_id, null)
-  metrics_advisor_aad_tenant_id                = try(var.cognitive_account.metrics_advisor_aad_tenant_id, null)
-  metrics_advisor_super_user_name              = try(var.cognitive_account.metrics_advisor_super_user_name, null)
-  metrics_advisor_website_name                 = try(var.cognitive_account.metrics_advisor_website_name, null)
-  outbound_network_access_restricted           = try(var.cognitive_account.outbound_network_access_restricted, false)
-  project_management_enabled                   = try(var.cognitive_account.project_management_enabled, false)
-  public_network_access_enabled                = try(var.cognitive_account.public_network_access_enabled, true)
-  qna_runtime_endpoint                         = try(var.cognitive_account.qna_runtime_endpoint, null)
-  custom_question_answering_search_service_id  = try(var.cognitive_account.custom_question_answering_search_service_id, null)
+  custom_subdomain_name                       = try(var.cognitive_account.custom_subdomain_name, null)
+  dynamic_throttling_enabled                  = try(var.cognitive_account.dynamic_throttling_enabled, null)
+  fqdns                                       = try(var.cognitive_account.fqdns, null)
+  local_auth_enabled                          = try(var.cognitive_account.local_auth_enabled, true)
+  metrics_advisor_aad_client_id               = try(var.cognitive_account.metrics_advisor_aad_client_id, null)
+  metrics_advisor_aad_tenant_id               = try(var.cognitive_account.metrics_advisor_aad_tenant_id, null)
+  metrics_advisor_super_user_name             = try(var.cognitive_account.metrics_advisor_super_user_name, null)
+  metrics_advisor_website_name                = try(var.cognitive_account.metrics_advisor_website_name, null)
+  outbound_network_access_restricted          = try(var.cognitive_account.outbound_network_access_restricted, false)
+  project_management_enabled                  = try(var.cognitive_account.project_management_enabled, false)
+  public_network_access_enabled               = try(var.cognitive_account.public_network_access_enabled, true)
+  qna_runtime_endpoint                        = try(var.cognitive_account.qna_runtime_endpoint, null)
+  custom_question_answering_search_service_id = try(var.cognitive_account.custom_question_answering_search_service_id, null)
+  # custom_question_answering_search_service_key is marked `sensitive` in the
+  # azurerm provider's own resource schema (verified via `terraform providers
+  # schema -json`), so Terraform already redacts it from plan/apply output and
+  # state diffs without any extra handling here.
   custom_question_answering_search_service_key = try(var.cognitive_account.custom_question_answering_search_service_key, null)
 
   # identity block — required when customer_managed_key is set
@@ -76,8 +80,4 @@ resource "azurerm_cognitive_account" "cognitive_account" {
   }
 
   tags = merge(var.tags, try(var.cognitive_account.tags, {}))
-
-  lifecycle {
-    ignore_changes = []
-  }
 }
