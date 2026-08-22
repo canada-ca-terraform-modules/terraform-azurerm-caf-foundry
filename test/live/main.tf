@@ -1,3 +1,4 @@
+# no-op touch: satisfies live-test.yml's test/live/** path filter for this PR
 terraform {
   required_version = ">= 1.9"
   required_providers {
